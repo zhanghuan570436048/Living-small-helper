@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/base.css" />
+</head>
+
+<body>
+    <div id="app">
+            <h2>知心姐姐</h2>
+        <robot-component></robot-component>
+    </div>
+</body>
+
+</html>
+<script src="./lib/vue.js"></script>
+<script src="./lib/axios.min.js"></script>
+<script type="text/html" id="robot">
+    <div class="robot">
+            <img class="sun" src="./img/littleSister.jpg" alt="">
+            <input type="text" v-model.trim="message" placeholder="你想跟姐姐聊什么?" @keyup.enter="chat">
+            <transition-group  tag="ul" name="list-complete">
+                <li @dblclick="removeCurrent(index)" v-for="(item, index) in messageList" :key="item.info"  class="list-complete-item" >
+                    <img :src="item.isMe?'./img/brother.jpg':'./img/sister.jpg'" alt="">:{{item.info}}
+                </li>
+            </transition-group>
+    </div>
+</script>
+<script>
+    /*
+        需求
+            点击回车
+                获取自己的信息
+                调用接口 获取返回的内容
+                [
+                    {info:"你好",isMe:true}
+
+                ]
+    */
+
+    // 注册组件
+    Vue.component("robot-component", {
+        template: "#robot",
+        data: function () {
+            return {
+                message: '',
+                messageList: []
+            }
+        },
+        methods: {
+            chat() {
+                // 把自己的信息 加到数组中
+                this.messageList.push({
+                    info: this.message,
+                    isMe: true
+                });
+
+                // 接口调用
+                // http://www.tuling123.com/openapi/api
+                // 格式化数据 axios 默认会把传入的js对象格式化为 json字符串
+                const params = new URLSearchParams();
+                params.append('key', 'd7c82ebd8b304abeacc73b366e42b9ed');
+                params.append('info', this.message);
+                axios
+                    .post('http://www.tuling123.com/openapi/api', params)
+                    .then( (response)=>{
+                        // console.log(response);
+                        this.messageList.push({
+                            info:response.data.text,
+                            isMe:false
+                        })
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            }
+            ,
+            // 删除一条
+            removeCurrent(index){
+                // 数组删除元素
+                this.messageList.splice(index,1);
+            }
+        }
+
+    })
+    // 实例化vue
+    let app = new Vue({
+        el: '#app'
+    })
+
+</script>

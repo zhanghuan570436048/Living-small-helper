@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/base.css">
+    <style>
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    h2 {
+        text-align: center;
+    }
+    .router-container {
+        height: 500px;
+        display: flex;
+    }
+    .router-container .nr {
+        flex: 1;
+        /* padding-left: 10px; */
+        background-color:greenyellow;
+    }
+    .router-container .nr ul>li {
+        padding-left: 10px;
+    }
+    #app p {
+        flex-basis: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        background-color: orange;
+    }
+    #app p a {
+        text-decoration: none;
+        margin: 10px;
+        color: #fff;
+    }
+    .active {
+        color: red;
+    }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h2>生活小助手</h2>
+        <div class="router-container">
+            <p>
+                <!-- 使用 router-link 组件来导航. -->
+                <!-- 通过传入 `to` 属性指定链接. -->
+                <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
+                <router-link to="/werther">天气助手</router-link>
+                <router-link to="/sister">知心姐姐</router-link>
+                <router-link to="/music">网易音乐</router-link>
+            </p>
+            <div class="nr">
+                <!-- 路由出口 -->
+                <!-- 路由匹配到的组件将渲染在这里 -->
+                <router-view></router-view>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script src="./lib/vue.js"></script>
+<script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+<script src="./lib/axios.min.js"></script>
+<script src="./lib/jquery.min.js"></script>
+<!-- 模板一:天气预报 -->
+<script type="text/html" id="weather">
+    <div class="weather">
+            <img class="sun" src="./img/sun.jpg" alt="">
+            <input type="text" v-model.trim="city" placeholder="请输入查询的城市" @keyup.enter="search">
+            <transition-group v-show="weatherList.length!=0" tag="ul" name="list">
+                <li v-bind:style="{transitionDelay:index*200+'ms'}" v-for="(item, index) in weatherList" :key="item.date">
+                    {{item.date}}--{{item.high}}--{{item.low}}--{{item.fengxiang}}
+                </li>
+            </transition-group>
+            <transition name="bounce">
+                <img class="big" v-show="isShow" src="./img/noExist.jpg" alt="">
+            </transition>
+    </div>
+</script>
+<!-- 模板二:知心小姐姐 -->
+<script type="text/html" id="robot">
+    <div class="robot">
+            <img class="sun" src="./img/littleSister.jpg" alt="">
+            <input type="text" v-model.trim="message" placeholder="你想跟姐姐聊什么?" @keyup.enter="chat">
+            <transition-group  tag="ul" name="list-complete">
+                <li @dblclick="removeCurrent(index)" v-for="(item, index) in messageList" :key="item.info"  class="list-complete-item" >
+                    <img :src="item.isMe?'./img/brother.jpg':'./img/sister.jpg'" alt="">:{{item.info}}
+                </li>
+            </transition-group>
+    </div>
+</script>
+<!--模板三:网易云音乐  -->
+<script type="text/html" id="music">
+    <div class="music">
+        <div class="left">
+            <input type="text" v-model.trim="keyword" @keyup.enter="serachMusic" placeholder="请输入歌曲后回车">
+            <ul>
+                <li v-for="(item, index) in musicList" :key="item.id" @dblclick="musicPlay(item.id)">{{item.name}}--{{item.artists[0].name}}</li>
+
+            </ul>
+        </div>
+        <div class="right">
+            <img v-bind:src="picUrl" v-show="picUrl" alt="" class="auto-rotate" v-bind:class='{play:isPlay}'>
+            <audio v-bind:src="musicUrl" @play="play" @pause="pause" v-show="musicUrl" autoplay controls></audio>
+        </div>
+    </div>
+</script>
+<script>
+// 0. 如果使用模块化机制编程，导入Vue和VueRouter，要调用 Vue.use(VueRouter)
+// 1. 定义 (路由) 组件。
+// 可以从其他文件 import 进来
+const werther = {
+        template: "#weather",
+        data: function () {
+            return {
+                city: '',
+                weatherList: [],
+                isShow: false
+            };
+        },
+        methods: {
+            search() {
+                // 清空数据 让ul隐藏
+                this.weatherList = [];
+                // 默认隐藏
+                this.isShow = false;
+                axios
+                    .get(`http://wthrcdn.etouch.cn/weather_mini?city=${this.city}`)
+                    .then((response) => {
+                        console.log(response);
+                        if (response.data.data) {
+                            // 数据回来之后 重新赋值 ul重新显示 触发动画
+                            this.weatherList = response.data.data.forecast;
+                            this.isShow = false;
+                        } else {
+                            // 出现提示图片
+                            this.isShow = true;
+                        }
+                    })
+                    .catch((error) => {
+                        // handle error
+                        console.log(error);
+                    })
+            }
+        }
+    }
+const sister =  {
+        template: "#robot",
+        data: function () {
+            return {
+                message: '',
+                messageList: []
+            }
+        },
+        methods: {
+            chat() {
+                // 把自己的信息 加到数组中
+                this.messageList.push({
+                    info: this.message,
+                    isMe: true
+                });
+
+                // 接口调用
+                // http://www.tuling123.com/openapi/api
+                // 格式化数据 axios 默认会把传入的js对象格式化为 json字符串
+                const params = new URLSearchParams();
+                params.append('key', 'd7c82ebd8b304abeacc73b366e42b9ed');
+                params.append('info', this.message);
+                axios
+                    .post('http://www.tuling123.com/openapi/api', params)
+                    .then( (response)=>{
+                        // console.log(response);
+                        this.messageList.push({
+                            info:response.data.text,
+                            isMe:false
+                        })
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            }
+            ,
+            // 删除一条
+            removeCurrent(index){
+                // 数组删除元素
+                this.messageList.splice(index,1);
+            }
+        }
+
+    }
+const music = {
+    template: "#music",
+    data: function () {
+        return {
+            keyword:'',
+            musicList:[],
+            //音乐播放地址
+            musicUrl:'',
+            //歌单封面图片
+            picUrl:'',
+            //判断是否播放
+            isPlay:false
+
+        }
+    },
+    methods:{
+        serachMusic(){
+            //调用接口搜索音乐
+            axios.get(`http://39.108.140.202:3000/search?keywords=${this.keyword}`)
+            .then((response)=>{
+                //console.log(response);
+                //将搜索的歌曲信息保存的数组中
+                this.musicList=response.data.result.songs
+                console.log(this);
+            })
+            .catch((error)=>{
+                console.log(error);
+            })
+        },
+        //双击播放音乐
+        musicPlay(id){
+            //console.log(id);
+
+            //获取音乐播放路径
+            axios.get(`http://39.108.140.202:3000/music/url?id=${id}`)
+            .then(response=>{
+                //console.log(response);
+                this.musicUrl = response.data.data[0].url;
+            })
+            .catch(error=>{console.log(error);})
+            //获取歌曲封面
+            axios.get(`http://39.108.140.202:3000/song/detail?ids=${id}`)
+                .then(response=>{
+                    //console.log(response);
+                    this.picUrl = response.data.songs[0].al.picUrl;
+                })
+                .catch(error=>{})
+        },
+        //注册audio的play事件
+            play(){
+                console.log("我在播放");
+                this.isPlay = true;
+            },
+            pause(){
+                console.log('暂停');
+                this.isPlay = false;
+            }
+    }
+
+}
+
+// 2. 定义路由
+// 每个路由应该映射一个组件。 其中"component" 可以是
+// 通过 Vue.extend() 创建的组件构造器，
+// 或者，只是一个组件配置对象。
+// 我们晚点再讨论嵌套路由。
+const routes = [
+  { path: '/', component: werther },
+  { path: '/werther', component: werther },
+  { path: '/sister', component: sister },
+  { path: '/music', component: music }
+]
+
+// 3. 创建 router 实例，然后传 `routes` 配置
+// 你还可以传别的配置参数, 不过先这么简单着吧。
+const router = new VueRouter({
+  routes // (缩写) 相当于 routes: routes
+})
+
+// 4. 创建和挂载根实例。
+// 记得要通过 router 配置参数注入路由，
+// 从而让整个应用都有路由功能
+const app = new Vue({
+    el:"#app",
+  router
+})
+
+// 现在------------------------------
+// Home.vue
+// export default {
+//   computed: {
+//     username () {
+//       // 我们很快就会看到 `params` 是什么
+//       return this.$route.params.username
+//     }
+//   },
+//   methods: {
+//     goBack () {
+//       window.history.length > 1
+//         ? this.$router.go(-1)
+//         : this.$router.push('/')
+//     }
+//   }
+// }
+
+
+</script>
+

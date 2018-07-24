@@ -1,0 +1,147 @@
+
+/* 天气预报 */
+img.sun {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+
+.weather .big {
+  display: block;
+  margin-left: 100px;
+  border-radius: 10px;
+  margin-top: 50px;
+}
+
+.list-item {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 1s;
+}
+
+.list-enter,
+.list-leave-to
+/* .list-leave-active for below version 2.1.8 */
+
+ {
+  opacity: 0;
+  transform: translateX(900px);
+}
+
+.bounce-enter-active {
+  animation: bounce-in 0.5s;
+}
+
+/* .bounce-leave-active { 消失就没有动画了
+    animation: bounce-in .5s reverse;
+} */
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+ul {
+  list-style: none;
+}
+.robot li {
+  margin: 10px;
+}
+.robot li img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  box-shadow: 0 0 100px yellowgreen;
+}
+
+/* 删除 加入 平滑动画 */
+.list-complete-item {
+  transition: all 0.5s;
+  display: block;
+  /* margin-right: 10px; */
+}
+.list-complete-enter, .list-complete-leave-to
+  /* .list-complete-leave-active for below version 2.1.8 */ {
+  opacity: 0;
+  transform: translateX(30px) translateY(-10px);
+}
+.list-complete-leave-active {
+  position: absolute;
+}
+
+/* // 音乐播放器的样式 */
+.music{
+  height: 500px;
+  display: flex;
+}
+.music .left{
+  width: 500px;
+  background-color: skyblue;
+  overflow-y: scroll;
+}
+.music .left input{
+  display: block;
+  margin: 10px auto;
+  height: 30px;
+  border-radius: 10px;
+  width: 400px;
+  padding-left: 20px;
+  border:none;
+}
+.music .left ul{
+  list-style: none;
+}
+.music .left ul li{
+  cursor: pointer;
+}
+.music .left ul li:hover{
+  color:white;
+  background-color:orange;
+  font-weight: 700;
+  /* font-size:22px; */
+}
+
+.music .right{
+  flex:1;
+  background-color: greenyellow;
+}
+.music .right img{
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  display: block;
+  margin: 20px auto 40px;
+}
+.music .right audio{
+  display: block;
+  margin: 0 auto;
+  width: 400px;
+}
+
+.auto-rotate {
+  animation: rotate linear infinite 5s;
+  animation-play-state: paused;
+}
+.play{
+  animation-play-state: running;
+}
+
+@keyframes rotate{
+  from{}
+  50%{
+      transform: rotateZ(180deg);
+  }
+  to{
+      transform: rotateZ(360deg);
+  }
+}
